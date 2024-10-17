@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.31.2 (a92241f79)
+  labels:
+    io.kompose.service: todo-management-for-mavenrepo
+  name: todo-management-for-mavenrepo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: todo-management-for-mavenrepo
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: todo-management-for-mavenrepo
+    spec:
+      containers:
+        - image: rinkuls/todo-management-for-mavenrepo:${BUILD_NUMBER}  # Updated to use the dynamic image tag
+          name: todo-management-for-mavenrepo
+          ports:
+            - containerPort: 8780
+              protocol: TCP
+          resources: {}
+      restartPolicy: Always
