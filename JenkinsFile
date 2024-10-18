@@ -41,18 +41,26 @@ node {
         }
 
         // Deploy to Kubernetes (Minikube)
-        stage('Deploy to Minikube') {
+stage('Deploy to Minikube') {
             echo "Deploying to Kubernetes with Docker Hub image: ${dockerImageTag}"
-
-            // Ensure Minikube context is set for Kubernetes
             bat 'kubectl config use-context minikube'
 
-            // Replace the image tag in the deployment YAML with the correct BUILD_NUMBER
+            // Log before replacement
+            bat 'type app-deployment.yaml'
+
+            // Replace the image tag
             bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace 'rinkuls/todo-management-for-mavenrepo:latest', 'rinkuls/todo-management-for-mavenrepo:${buildNumber}' | Set-Content app-deployment.yaml\""
 
-            // Apply the deployment and service configuration files
+            // Log after replacement
+            bat 'type app-deployment.yaml'
+
+            // Apply the deployment
             bat 'kubectl apply -f app-deployment.yaml'
             bat 'kubectl apply -f app-service.yaml'
+
+            // Check pod status
+            bat 'kubectl get pods'
+            bat 'kubectl describe deployment <your-deployment-name>'
         }
 
         echo 'Deployment to Minikube was successful!'
