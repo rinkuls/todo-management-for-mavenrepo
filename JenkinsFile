@@ -31,7 +31,7 @@ node {
         stage('Push Docker Image to Docker Hub') {
             withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
                 bat  '''
-                    echo %DOCKER_HUB_PASSWORD% | docker login -u %DOCKER_HUB_USERNAME% --password-Rinkul@123
+                    echo %DOCKER_HUB_PASSWORD% | docker login -u %DOCKER_HUB_USERNAME% --password- %DOCKER_HUB_PASSWORD%
                 '''
                 // Push Docker image to Docker Hub
                 bat  "docker push ${dockerImageTag}"
