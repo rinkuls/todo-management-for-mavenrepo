@@ -30,10 +30,9 @@ node {
         // Push Docker Image to Docker Hub
         stage('Push Docker Image to Docker Hub') {
             withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
-              bat '''
-                  docker login -u %DOCKER_HUB_USERNAME% -p %DOCKER_HUB_PASSWORD%
-              '''
-
+                bat '''
+                    docker login -u %DOCKER_HUB_USERNAME% -p %DOCKER_HUB_PASSWORD%
+                '''
 
                 // Push Docker image to Docker Hub
                 bat  "docker push ${dockerImageTag}"
@@ -41,7 +40,7 @@ node {
         }
 
         // Deploy to Kubernetes (Minikube)
-stage('Deploy to Minikube') {
+        stage('Deploy to Minikube') {
             echo "Deploying to Kubernetes with Docker Hub image: ${dockerImageTag}"
             bat 'kubectl config use-context minikube'
 
@@ -49,7 +48,6 @@ stage('Deploy to Minikube') {
             bat 'type app-deployment.yaml'
 
             // Replace the image tag
-           // bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace 'rinkuls/todo-management-for-mavenrepo:latest', 'rinkuls/todo-management-for-mavenrepo:${buildNumber}' | Set-Content app-deployment.yaml\""
             bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace '\\\$\\{BUILD_NUMBER\\}', '${env.BUILD_NUMBER}' | Set-Content app-deployment.yaml\""
 
             // Log after replacement
@@ -65,10 +63,13 @@ stage('Deploy to Minikube') {
         }
 
         echo 'Deployment to Minikube was successful!'
+        // Notify on successful completion
+        notifyBuild('SUCCESSFUL')
     } catch (e) {
         echo "Error occurred: ${e.message}"
         currentBuild.result = "FAILED"
-        notifyBuild(currentBuild.result)
+        // Notify on failure
+        notifyBuild('FAILED')
         throw e
     } finally {
         echo "in finally"
