@@ -30,12 +30,13 @@ node {
         // Push Docker Image to Docker Hub
         stage('Push Docker Image to Docker Hub') {
             withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
+                // Log in to Docker Hub
                 bat '''
-                    docker login -u %DOCKER_HUB_USERNAME% -p %DOCKER_HUB_PASSWORD%
+                    docker login -u %DOCKER_HUB_USERNAME% -p %DOCKER_HUB_PASSWORD% || exit 255
                 '''
 
                 // Push Docker image to Docker Hub
-                bat  "docker push ${dockerImageTag}"
+                bat "docker push ${dockerImageTag} || exit 255"
             }
         }
 
@@ -44,28 +45,22 @@ node {
             echo "Deploying to Kubernetes with Docker Hub image: ${dockerImageTag}"
             bat 'kubectl config use-context minikube'
 
-            // Log before replacement
-            bat 'type app-deployment.yaml'
-
             // Replace the image tag
-            bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace '\\\$\\{BUILD_NUMBER\\}', '${env.BUILD_NUMBER}' | Set-Content app-deployment.yaml\""
-
-            // Log after replacement
-            bat 'type app-deployment.yaml'
+            bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace '\\\$\\{BUILD_NUMBER\\}', '${buildNumber}' | Set-Content app-deployment.yaml\""
 
             // Apply the deployment
-            bat 'kubectl apply -f app-deployment.yaml'
-            bat 'kubectl apply -f app-service.yaml'
+            bat 'kubectl apply -f app-deployment.yaml || exit 255'
+            bat 'kubectl apply -f app-service.yaml || exit 255'
 
-            // Check pod status
-            bat 'kubectl get pods'
-            bat 'kubectl describe deployment <your-deployment-name>'
+            // Check pod status and log it
+            bat 'kubectl get pods || exit 255'
+            bat 'kubectl describe deployment todo-management-for-mavenrepo || exit 255'
         }
 
         echo 'Deployment to Minikube was successful!'
         // Notify on successful completion
         notifyBuild('SUCCESSFUL')
-    } catch (e) {
+    } catch (Exception e) {
         echo "Error occurred: ${e.message}"
         currentBuild.result = "FAILED"
         // Notify on failure
