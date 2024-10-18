@@ -49,7 +49,8 @@ stage('Deploy to Minikube') {
             bat 'type app-deployment.yaml'
 
             // Replace the image tag
-            bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace 'rinkuls/todo-management-for-mavenrepo:latest', 'rinkuls/todo-management-for-mavenrepo:${buildNumber}' | Set-Content app-deployment.yaml\""
+           // bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace 'rinkuls/todo-management-for-mavenrepo:latest', 'rinkuls/todo-management-for-mavenrepo:${buildNumber}' | Set-Content app-deployment.yaml\""
+            bat "powershell -Command \"(Get-Content app-deployment.yaml) -replace '\\\$\\{BUILD_NUMBER\\}', '${env.BUILD_NUMBER}' | Set-Content app-deployment.yaml\""
 
             // Log after replacement
             bat 'type app-deployment.yaml'
